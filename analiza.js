@@ -254,7 +254,7 @@ function checks(d, r) {
   if (has(d.ve) && [d.vst, d.pim, d.avex].some(has)) ck('Venituri din exploatare = CA + variația stocurilor + producția imobilizată + alte venituri', d.ve, z(d.ca) + z(d.vst) + z(d.pim) + z(d.avex), 'pot exista și venituri din reevaluare / investiții imobiliare');
   if (has(d.che) && [d.cmat, d.chp, d.cpe].some(has)) ck('Cheltuieli de exploatare = suma componentelor', d.che, z(d.cmat) + z(d.cen) + z(d.chm) - z(d.rcp) + z(d.chp) + z(d.amo) + z(d.ajac) + z(d.cpe) + z(d.cit) + z(d.acex) + z(d.aprov));
   if (has(r.RE) && has(r.RE_SIG)) ck('Rezultatul exploatării din SIG = venituri − cheltuieli de exploatare', r.RE_SIG, r.RE, 'diferențe apar dacă lipsesc unele componente');
-  ck('Trezoreria netă: FR − NFR = disponibilități + investiții TS − credite TS', r.TN, r.TNdir, 'necesită datorii < 1 an și > 1 an completate');
+  if (has(d.datc) && has(d.datl)) ck('Trezoreria netă: FR − NFR = disponibilități + investiții TS − credite TS', r.TN, r.TNdir);
   if (has(d.ca) && has(d.ve) && d.ca > d.ve + 2) out.push({ name: 'Cifra de afaceri nu poate depăși veniturile din exploatare', a: d.ca, b: d.ve, diff: d.ca - d.ve, ok: false });
   if (has(d.pb) && has(d.pib) && d.pb > 0 && d.pib > 0) out.push({ name: 'Profit brut și pierdere brută completate simultan', a: d.pb, b: d.pib, diff: null, ok: false });
   return out;

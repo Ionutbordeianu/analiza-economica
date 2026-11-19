@@ -10,6 +10,7 @@ const pct = v => (v == null || !isFinite(v)) ? '—' : nf2.format(v * 100) + '%'
 const num = v => (v == null || !isFinite(v)) ? '—' : nf2.format(v);
 const strip = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 const today = () => new Date().toISOString().slice(0, 10);
+const PROXY = 'https://anaf-proxy.ionut-bordeianu.workers.dev';
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stocare indisponibilă */ } }
@@ -41,6 +42,10 @@ function cuiValid(raw) {
 }
 
 async function anafPost(url, body) {
+  try {
+    const r = await fetch(PROXY + '/tva', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (r.ok) return await r.json();
+  } catch (e) { /* încearcă direct */ }
   const opts = ct => ({ method: 'POST', headers: { 'Content-Type': ct }, body: JSON.stringify(body) });
   let lastErr;
   for (const ct of ['application/json', 'text/plain']) {
@@ -189,8 +194,9 @@ function parseBilant(j) {
   return { o, meta: j, count: Object.keys(o).length };
 }
 async function fetchBilant(cui, an) {
-  const r = await fetch(`https://webservicesp.anaf.ro/bilant?an=${an}&cui=${cui}`);
-  if (!r.ok) throw new Error('HTTP ' + r.status);
+  let r;
+  try { r = await fetch(`${PROXY}/bilant?an=${an}&cui=${cui}`); if (!r.ok) throw new Error('HTTP ' + r.status); }
+  catch (e) { r = await fetch(`https://webservicesp.anaf.ro/bilant?an=${an}&cui=${cui}`); if (!r.ok) throw new Error('HTTP ' + r.status); }
   return parseBilant(await r.json());
 }
 $('#bilLoad').addEventListener('click', async () => {

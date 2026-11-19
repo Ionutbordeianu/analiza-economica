@@ -144,3 +144,25 @@ details.sub summary{cursor:pointer;color:var(--accent);font-size:.9rem}
 }
 .panel input[type=checkbox],label.check input{width:auto;margin-top:4px}
 #finOut,.tab{scroll-margin-top:80px}
+/* v4 — analiză completă, fiscal, raport */
+.fin td.lv1{padding-left:22px}
+.fin td.lv2{padding-left:40px;color:var(--muted)}
+body.only-anaf #finTable tbody tr:not(.anaf):not(.grp){display:none}
+.toggle{margin:4px 0 10px;font-weight:600}
+h3.sec{margin-top:28px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent)}
+.ratios tr.hl td{background:var(--accent2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.grid2 label{margin-bottom:6px}
+.raport{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px 28px;margin:12px 0}
+.raport header{border-bottom:3px solid var(--accent);margin-bottom:12px}
+.raport h3{color:var(--accent);margin-top:20px}
+.raport h4{margin:.2em 0}
+.raport ul{padding-left:18px}
+.score .box table.sum td{font-size:.86rem}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+@media print{
+  .noprint,nav,.fin-actions,#finTable,.panel>summary{display:none!important}
+  .raport{border:0;padding:0}
+  .ratios,.sum{page-break-inside:auto}
+  tr{page-break-inside:avoid}
+}

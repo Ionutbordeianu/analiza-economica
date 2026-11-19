@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verificare & Analiză Economică — firme și PFA</title>
+<meta name="description" content="Instrumente gratuite pentru verificarea firmelor și PFA din România: date ANAF după CUI, analiză financiară din bilanț, calculator taxe PFA, checklist de verificare.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#acasa" data-tab="acasa">
+      <span class="logo">Σ</span>
+      <span><strong>Analiză Economică</strong><small>verificare firme &amp; PFA</small></span>
+    </a>
+    <nav id="nav">
+      <a href="#acasa" data-tab="acasa">Acasă</a>
+      <a href="#firma" data-tab="firma">Verificare CUI</a>
+      <a href="#analiza" data-tab="analiza">Analiză financiară</a>
+      <a href="#pfa" data-tab="pfa">Calculator PFA</a>
+      <a href="#checklist" data-tab="checklist">Checklist</a>
+      <a href="#validari" data-tab="validari">Validări</a>
+      <a href="#resurse" data-tab="resurse">Resurse</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= ACASĂ ================= -->
+<section id="acasa" class="tab">
+  <div class="hero">
+    <h1>Verificarea activității societăților comerciale și a PFA</h1>
+    <p>Un set de instrumente de economie, analiză economico-financiară și contabilitate. Totul rulează în browser: datele introduse nu sunt trimise nicăieri, cu excepția interogărilor publice către ANAF.</p>
+  </div>
+  <div class="cards">
+    <a class="card" href="#firma" data-tab="firma"><h3>Verificare după CUI</h3><p>Date ANAF: denumire, adresă, stare (activ / inactiv / radiat), TVA, TVA la încasare, RO e-Factura, cod CAEN.</p></a>
+    <a class="card" href="#analiza" data-tab="analiza"><h3>Analiză financiară</h3><p>Indicatori din bilanț pe doi ani: lichiditate, solvabilitate, îndatorare, rentabilitate, rotație, scor de risc Altman Z″ și semnale de alertă.</p></a>
+    <a class="card" href="#pfa" data-tab="pfa"><h3>Calculator PFA 2026</h3><p>Impozit pe venit, CAS și CASS în sistem real, cu plafoanele de 6 / 12 / 24 / 72 salarii minime.</p></a>
+    <a class="card" href="#checklist" data-tab="checklist"><h3>Checklist de verificare</h3><p>Pași de due diligence pentru un partener, client sau furnizor: juridic, fiscal, financiar, operațional.</p></a>
+    <a class="card" href="#validari" data-tab="validari"><h3>Validări</h3><p>Cifra de control a CUI și validarea IBAN-urilor românești, cu banca emitentă.</p></a>
+    <a class="card" href="#resurse" data-tab="resurse"><h3>Resurse oficiale</h3><p>ANAF, ONRC, Ministerul Finanțelor, portal.just.ro, BPI, Monitorul Oficial, BNR, legislație.</p></a>
+  </div>
+  <p class="disclaimer">Instrumentele au scop informativ și nu înlocuiesc opinia unui expert contabil, auditor sau consultant fiscal. Verificați întotdeauna datele la sursa oficială.</p>
+</section>
+
+<!-- ================= VERIFICARE CUI ================= -->
+<section id="firma" class="tab" hidden>
+  <h2>Verificare firmă / PFA după CUI</h2>
+  <p class="lead">Interogare a serviciului web public ANAF (Registrul contribuabililor, TVA, e-Factura). Funcționează pentru SRL, SA, PFA, II, IF — orice entitate cu cod fiscal.</p>
+  <form id="cuiForm" class="row">
+    <label>CUI / CIF <input id="cuiInput" inputmode="numeric" placeholder="ex. RO14399840" required></label>
+    <label>La data <input id="cuiDate" type="date"></label>
+    <button type="submit" class="btn">Verifică</button>
+  </form>
+  <div id="cuiCheck" class="note"></div>
+  <div id="cuiResult"></div>
+  <div id="cuiLinks" class="links-box" hidden></div>
+</section>
+
+<!-- ================= ANALIZĂ FINANCIARĂ ================= -->
+<section id="analiza" class="tab" hidden>
+  <h2>Analiză economico-financiară din bilanț</h2>
+  <p class="lead">Completează indicatorii din situațiile financiare (sau încarcă-i din datele publicate de ANAF) pentru anul curent (N) și anul anterior (N-1).</p>
+
+  <details class="panel" open>
+    <summary>Încarcă automat din bilanțul publicat la ANAF</summary>
+    <div class="row">
+      <label>CUI <input id="bilCui" inputmode="numeric" placeholder="ex. 14399840"></label>
+      <label>Anul N <input id="bilAn" type="number" min="2014" max="2030"></label>
+      <button class="btn" id="bilLoad" type="button">Încarcă N și N-1</button>
+    </div>
+    <div id="bilMsg" class="note"></div>
+    <details class="sub">
+      <summary>Nu merge încărcarea? Lipește manual răspunsul ANAF</summary>
+      <p>Deschide linkul de mai jos într-o filă nouă, copiază tot textul (JSON) și lipește-l aici.</p>
+      <p id="bilManualLinks"></p>
+      <div class="row">
+        <textarea id="bilPaste" rows="4" placeholder='{"an":2024,"cui":...,"i":[...]}'></textarea>
+        <div class="col">
+          <button class="btn sm" type="button" data-paste="N">Pune în anul N</button>
+          <button class="btn sm ghost" type="button" data-paste="P">Pune în anul N-1</button>
+        </div>
+      </div>
+    </details>
+  </details>
+
+  <div class="fin-grid">
+    <table class="fin" id="finTable">
+      <thead><tr><th>Indicator (lei)</th><th>N-1</th><th>N</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="fin-actions">
+      <button class="btn" id="finCalc" type="button">Calculează indicatorii</button>
+      <button class="btn ghost" id="finDemo" type="button">Exemplu</button>
+      <button class="btn ghost" id="finClear" type="button">Golește</button>
+      <p class="hint">„Datorii curente” (sub 1 an) nu apar în datele publicate de ANAF; dacă rămân necompletate, se folosesc datoriile totale — lichiditatea apare astfel mai prudentă.</p>
+    </div>
+  </div>
+  <div id="finOut"></div>
+</section>
+
+<!-- ================= CALCULATOR PFA ================= -->
+<section id="pfa" class="tab" hidden>
+  <h2>Calculator taxe PFA — sistem real</h2>
+  <p class="lead">Impozit pe venit 10%, CAS (pensie) 25%, CASS (sănătate) 10%, conform plafoanelor stabilite cu salariul minim în vigoare la 1 ianuarie al anului.</p>
+  <div class="pfa-grid">
+    <form id="pfaForm" class="panel">
+      <label>Anul fiscal
+        <select id="pfaAn"><option value="2026" selected>2026</option><option value="2025">2025</option></select>
+      </label>
+      <label>Salariu minim brut de referință (lei/lună) <input id="pfaSmin" type="number" step="1"></label>
+      <label>Venituri brute încasate în an (lei) <input id="pfaVenit" type="number" step="0.01" value="72000"></label>
+      <label>Cheltuieli deductibile (lei) <input id="pfaChelt" type="number" step="0.01" value="0"></label>
+      <label>Bază CAS aleasă
+        <select id="pfaCasBaza">
+          <option value="min" selected>Minimul legal (12 sau 24 salarii)</option>
+          <option value="24">24 salarii minime (opțional, pentru pensie mai mare)</option>
+          <option value="none">Nu datorez CAS (sub 12 salarii, fără opțiune)</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="pfaExcept"> Sunt exceptat de la baza minimă CASS de 6 salarii (salariat cu bază ≥ 6 salarii, pensionar, beneficiar de indemnizații etc.)</label>
+      <label>Alte deduceri din venitul impozabil (lei) <input id="pfaDed" type="number" step="0.01" value="0"></label>
+      <p class="hint">Calculatorul aplică regulile generale. Situații speciale (norme de venit, pierderi fiscale reportate, venituri din mai multe surse, scutiri pentru persoane cu dizabilități) necesită verificare cu un specialist.</p>
+    </form>
+    <div id="pfaOut" class="panel"></div>
+  </div>
+</section>
+
+<!-- ================= CHECKLIST ================= -->
+<section id="checklist" class="tab" hidden>
+  <h2>Checklist de verificare (due diligence)</h2>
+  <p class="lead">Bifează pașii pe măsură ce verifici o firmă sau un PFA. Bifele se salvează doar în acest browser.</p>
+  <div class="row">
+    <label>Entitate verificată <input id="clName" placeholder="Denumire / CUI"></label>
+    <button class="btn ghost" id="clReset" type="button">Resetează</button>
+    <button class="btn ghost" type="button" onclick="window.print()">Tipărește / PDF</button>
+  </div>
+  <div class="progress"><div id="clBar"></div></div>
+  <div id="clBody"></div>
+</section>
+
+<!-- ================= VALIDĂRI ================= -->
+<section id="validari" class="tab" hidden>
+  <h2>Validări</h2>
+  <div class="cards two">
+    <div class="panel">
+      <h3>Cifra de control CUI / CIF</h3>
+      <input id="vCui" placeholder="ex. RO14399840">
+      <div id="vCuiOut" class="note"></div>
+      <p class="hint">Algoritm: cheia 753217532 se înmulțește cu cifrele CUI (fără cifra de control), suma × 10 mod 11; rezultatul 10 devine 0.</p>
+    </div>
+    <div class="panel">
+      <h3>IBAN</h3>
+      <input id="vIban" placeholder="ex. RO49 AAAA 1B31 0075 9384 0000">
+      <div id="vIbanOut" class="note"></div>
+      <p class="hint">Verificare ISO 13616 (mod 97). Pentru IBAN-urile RO se afișează și banca după codul de 4 litere. IBAN-urile de Trezorerie încep cu RO..TREZ.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESURSE ================= -->
+<section id="resurse" class="tab" hidden>
+  <h2>Resurse oficiale</h2>
+  <div id="resBody" class="res"></div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Proiect open source, găzduit pe GitHub Pages. Date publice ANAF folosite conform termenilor serviciilor web publice ANAF. Site-ul nu este afiliat ANAF sau Ministerului Finanțelor.</p>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

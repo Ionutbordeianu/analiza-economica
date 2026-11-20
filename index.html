@@ -79,7 +79,7 @@
     <summary>Încarcă automat din bilanțul publicat la ANAF</summary>
     <div class="row">
       <label>CUI <input id="bilCui" inputmode="numeric" placeholder="cod fiscal"></label>
-      <label>Anul N <input id="bilAn" type="number" min="2014" max="2030"></label>
+      <label>Anul N <input id="bilAn" type="number" min="2014" max="2100" placeholder="cel mai recent"></label>
       <button class="btn" id="bilLoad" type="button">Încarcă N și N-1</button>
     </div>
     <div id="bilMsg" class="note"></div>
@@ -123,7 +123,7 @@
 <!-- ================= SECTOR ================= -->
 <section id="sector" class="tab" hidden>
   <h2>Analiză de sector CAEN</h2>
-  <p class="lead">Profilul complet al unui sector, calculat din bilanțurile pe 2025 și 2024 ale tuturor firmelor care au depus situații financiare (Ministerul Finanțelor, data.gov.ro). Bilanțurile pe 2025 folosesc clasificarea CAEN Rev.3.</p>
+  <p class="lead">Profilul complet al unui sector, calculat din bilanțurile pe ultimii doi ani publicați ale tuturor firmelor care au depus situații financiare (Ministerul Finanțelor, data.gov.ro). Datele se actualizează automat când Ministerul Finanțelor publică un an nou. <span id="secMeta"></span></p>
   <div class="row">
     <label>Cod CAEN (clasă, 4 cifre, sau diviziune, 2 cifre) <input id="secCode" list="caenList" inputmode="numeric" size="8" placeholder="cod CAEN"></label>
     <button class="btn" id="secGo" type="button">Analizează sectorul</button>

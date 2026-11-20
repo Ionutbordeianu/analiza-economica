@@ -111,18 +111,28 @@ function parseBilant(j) {
 }
 window.AE_parseBilant = parseBilant;
 let META = {};
-$('#bilAn').value = new Date().getFullYear() - 1;
 function manualLinks() {
-  const c = U.cleanCui($('#bilCui').value) || 'CUI', n = +$('#bilAn').value;
+  const c = U.cleanCui($('#bilCui').value) || 'CUI', n = +$('#bilAn').value || new Date().getFullYear() - 1;
   $('#bilManualLinks').innerHTML = [n, n - 1].map(y => `<a href="https://webservicesp.anaf.ro/bilant?an=${y}&cui=${esc(c)}" target="_blank" rel="noopener">bilanț ${y}</a>`).join(' · ');
 }
 ['input', 'change'].forEach(ev => { $('#bilCui').addEventListener(ev, manualLinks); $('#bilAn').addEventListener(ev, manualLinks); });
 manualLinks();
 async function loadAnaf(cui, an) {
-  const c = U.cleanCui(cui); const n = +an; const msg = [];
+  const c = U.cleanCui(cui); const msg = []; const cache = {};
+  let n = +an;
+  if (!n) { // anul cel mai recent publicat de ANAF: se încearcă anul trecut, apoi cu un an mai devreme
+    const y0 = new Date().getFullYear() - 1;
+    for (const y of [y0, y0 - 1]) {
+      try { const b = parseBilant(await U.anafBilant(c, y)); cache[y] = b; if (b.count) { n = y; break; } } catch (e) { cache[y] = e; }
+    }
+    if (!n) n = y0 - 1;
+    $('#bilAn').value = n;
+    msg.push(`<div class="msg">Cel mai recent bilanț publicat de ANAF pentru acest CUI: <strong>${n}</strong>${n < y0 ? ` (bilanțul pe ${y0} nu este încă publicat)` : ''}.</div>`);
+  }
   for (const [y, yr] of [['N', n], ['P', n - 1]]) {
     try {
-      const b = parseBilant(await U.anafBilant(c, yr));
+      if (cache[yr] instanceof Error) throw cache[yr];
+      const b = cache[yr] || parseBilant(await U.anafBilant(c, yr));
       if (!b.count) { msg.push(`<div class="msg warn">${yr}: nu există bilanț publicat (PFA/II nu depun bilanț, sau anul nu e încă publicat).</div>`); continue; }
       setYear(y, b.o, false);
       if (y === 'N') { META = { cui: c, an: yr, deni: b.meta.deni, caen: b.meta.caen, den_caen: b.meta.den_caen }; $('#finCaen').value = b.meta.caen || ''; $('#simMode').checked = false; }

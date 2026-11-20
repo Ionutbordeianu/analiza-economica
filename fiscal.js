@@ -18,12 +18,13 @@ $('#fiscRef').innerHTML = `<table class="sum">
 <tr><td>Salariul minim brut — referință pentru plafoanele anului (1 ianuarie 2026)</td><td class="num">${lei(P26.smin)}</td></tr>
 <tr><td>Salariul minim brut de la 1 iulie 2026</td><td class="num">${lei(P26.smin2)}</td></tr>
 <tr><td>Impozit pe veniturile microîntreprinderilor (cotă unică)</td><td class="num">1%</td></tr>
-<tr><td>Plafon microîntreprindere (venituri anul precedent, inclusiv întreprinderi legate)</td><td class="num">100.000 EUR</td></tr>
+<tr><td>Plafon microîntreprindere (cifra de afaceri la 31.12.2025, inclusiv întreprinderi legate; la cursul de 5,0985 lei)</td><td class="num">100.000 EUR = 509.850 lei</td></tr>
+<tr><td>Condiție micro: cel puțin un salariat cu contract de muncă cu normă întreagă</td><td class="num">da</td></tr>
 <tr><td>Impozit pe profit</td><td class="num">16%</td></tr>
 <tr><td>Impozit pe dividende (distribuite după 1 ianuarie 2026)</td><td class="num">16%</td></tr>
 <tr><td>TVA — cota standard / cota redusă</td><td class="num">21% / 11%</td></tr>
 <tr><td>Plafon de scutire TVA (art. 310 Cod fiscal)</td><td class="num">${lei(P26.plafonTVA)}</td></tr>
-<tr><td>Plafon TVA la încasare (din 1 martie 2026)</td><td class="num">${lei(P26.tvaInc)}</td></tr>
+<tr><td>Plafon TVA la încasare (1 martie – 31 decembrie 2026, OUG 8/2026; 5.500.000 lei din 2027)</td><td class="num">${lei(P26.tvaInc)}</td></tr>
 <tr><td>Salarii: CAS / CASS / impozit (angajat) — CAM (angajator)</td><td class="num">25% / 10% / 10% — 2,25%</td></tr>
 <tr><td>PFA sistem real: impozit / CAS / CASS</td><td class="num">10% / 25% / 10%</td></tr>
 <tr><td>PFA: plafoane CAS 12 / 24 salarii; CASS minim 6, maxim 72 salarii</td><td class="num">48.600 / 97.200; 24.300 – 291.600 lei</td></tr>
@@ -52,12 +53,13 @@ function srl(V, Ch, s, micro) {
   return { taxe: impF + impDiv + cass, net: profit - impDiv - cass, det: `${micro ? 'impozit micro 1%' : 'impozit profit 16%'} ${lei(impF)} · impozit dividende ${lei(impDiv)} · CASS dividende ${lei(cass)}` };
 }
 function cmpCalc() {
-  const V = v('cmpV'), Ch = v('cmpCh'), eur = v('cmpEur') || 5.1, sal = $('#cmpSal').checked, prevV = v('cmpPrev') || V;
+  if ($('#cmpV').value === '') { $('#cmpOut').innerHTML = '<p class="hint">Introdu veniturile anuale și cheltuielile deductibile pentru comparație.</p>'; return; }
+  const V = v('cmpV'), Ch = v('cmpCh'), eur = v('cmpEur'), sal = $('#cmpSal').checked, prevV = $('#cmpPrev').value === '' ? V : v('cmpPrev');
   const s = P26.smin;
-  const microOk = prevV <= P26.microEUR * eur && sal;
+  const microOk = eur > 0 && prevV <= P26.microEUR * eur && sal;
   const rows = [
     ['PFA — sistem real', pfa(V, Ch, s), true, ''],
-    ['SRL microîntreprindere (1% din venituri)', srl(V, Ch, s, true), microOk, microOk ? '' : (!sal ? 'necesită cel puțin un salariat' : `venituri peste ${nf0.format(P26.microEUR * eur)} lei`)],
+    ['SRL microîntreprindere (1% din venituri)', srl(V, Ch, s, true), microOk, microOk ? '' : (!sal ? 'necesită cel puțin un salariat cu normă întreagă' : !(eur > 0) ? 'introdu cursul EUR' : `cifra de afaceri din anul precedent peste ${nf0.format(P26.microEUR * eur)} lei`)],
     ['SRL impozit pe profit (16%)', srl(V, Ch, s, false), true, '']
   ];
   const elig = rows.filter(r => r[2]); const best = elig.reduce((a, b) => b[1].net > a[1].net ? b : a);
@@ -71,6 +73,7 @@ cmpCalc();
 
 /* ---------- impozit pe profit cu limite de deductibilitate ---------- */
 function ipCalc() {
+  if ($('#ipV').value === '' || $('#ipCh').value === '') { $('#ipOut').innerHTML = '<p class="hint">Introdu cel puțin veniturile totale și cheltuielile totale.</p>'; return; }
   const Vt = v('ipV'), Vn = v('ipVn'), Ch = v('ipCh'), prot = v('ipProt'), soc = v('ipSoc'), sal = v('ipSal'), auto = v('ipAuto'),
         amenzi = v('ipAm'), altn = v('ipAlt'), spons = v('ipSpons'), ca = v('ipCA') || Vt, cs = v('ipCS'), rlex = v('ipRL');
   const PCB = Vt - Ch; // profit contabil brut (fără cheltuiala cu impozitul pe profit)
@@ -114,6 +117,7 @@ ipCalc();
 
 /* ---------- TVA ---------- */
 function tvaCalc() {
+  if ($('#tvaCA').value === '') { $('#tvaOut').innerHTML = '<p class="hint">Introdu cifra de afaceri cumulată în anul curent.</p>'; return; }
   const ca = v('tvaCA'), fact = v('tvaFact');
   const after = ca + fact;
   let h;
@@ -132,7 +136,7 @@ const CAL = [
   ['Ultima zi a lunii februarie', 'D205 — declarația informativă privind impozitul reținut la sursă (inclusiv dividende).'],
   ['25 mai', 'Declarația unică D212 — PFA, venituri din chirii, investiții, dividende (CASS).'],
   ['150 de zile de la închiderea exercițiului', 'Situațiile financiare anuale (pentru exercițiul calendaristic, la sfârșitul lui mai — începutul lui iunie).'],
-  ['25 iunie', 'D101 — declarația anuală de impozit pe profit (exercițiu calendaristic).'],
+  ['25 iunie 2026', 'D101 — declarația anuală de impozit pe profit pentru anul 2025 (derogarea din OUG 153/2020, aplicabilă anilor 2021–2025). Pentru anii următori, Codul fiscal prevede 25 martie, dacă nu intervine o nouă derogare.'],
   ['La depășirea plafonului de 395.000 lei', 'Cererea de înregistrare în scopuri de TVA (D098/D091), cel târziu la data depășirii.'],
   ['În 15 zile de la modificare', 'Actualizarea registrului beneficiarilor reali la ONRC.']
 ];

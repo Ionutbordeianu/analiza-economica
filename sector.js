@@ -4,7 +4,13 @@
 const $ = (s, r = document) => r.querySelector(s);
 const U = window.AEU; const { lei, pct, num, nf0, nf2, esc, strip } = U;
 let D = null, LOADING = null;
-function load() { if (!LOADING) LOADING = fetch('sector2025.json?v=7').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(j => (D = j)); return LOADING; }
+function load() {
+  if (!LOADING) LOADING = fetch('sector.json', { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(j => { D = j; if (!D.rev) D.rev = [D.an >= 2025 ? 3 : 2, D.prevAn >= 2025 ? 3 : 2]; const m = $('#secMeta'); if (m) m.textContent = `Date încărcate: exercițiile ${D.an} și ${D.prevAn}${D.updated ? ', actualizate la ' + D.updated : ''}.`; return D; });
+  return LOADING;
+}
+const revTxt = r => 'CAEN Rev.' + r;
+const revOf = an => (+an >= 2025 ? 3 : 2);
 load().then(initTab).catch(e => { const o = $('#secOut'); if (o) o.innerHTML = `<div class="msg bad">Datele de sector nu s-au putut încărca (${esc(e.message)}).</div>`; });
 
 const days = v => v == null || !isFinite(v) ? '—' : nf0.format(v) + ' zile';
@@ -41,7 +47,7 @@ function key(code) {
   return D.d[c2] ? c2 : null;
 }
 const label = k => k === 'ALL' ? 'toate firmele' : (k.length === 4 ? `clasa CAEN ${k}` : `diviziunea CAEN ${k}`) + (nameOf(k) ? ` — ${nameOf(k)}` : '');
-const sameMeaning = k => { if (k.length !== 4) return false; const n = D.caen[k]; return !!(n && n[0] && n[1] && strip(n[0]).replace(/[^a-z]/g, '') === strip(n[1]).replace(/[^a-z]/g, '')); };
+const sameMeaning = k => { if (D.rev[0] === D.rev[1]) return true; if (k.length !== 4) return false; const n = D.caen[k]; return !!(n && n[0] && n[1] && strip(n[0]).replace(/[^a-z]/g, '') === strip(n[1]).replace(/[^a-z]/g, '')); };
 function pctile(q, v) { // percentila estimată prin interpolare între P10, P25, P50, P75, P90
   if (!q || v == null || !isFinite(v)) return null; const P = [10, 25, 50, 75, 90];
   if (v <= q[0]) return [0, 10]; if (v >= q[4]) return [90, 100];
@@ -98,8 +104,8 @@ function profile(k) {
       ['Datorii', DAT, psum(p, 'dat'), lei], ['Capitaluri proprii', CP, psum(p, 'cp'), lei], ['Firme cu pierdere (%)', loss / n, p[1] / p[0], pct]];
     h += `<h4>Evoluția sectorului ${D.prevAn} → ${D.an}</h4>` + (ok4 ? `<table class="ratios"><thead><tr><th>Indicator</th><th>${D.prevAn}</th><th>${D.an}</th><th>Variație</th></tr></thead><tbody>
     ${rows.map(([l, a, b, f]) => `<tr><td>${l}</td><td class="num">${f(b)}</td><td class="num">${f(a)}</td><td class="num">${f === pct ? (a - b >= 0 ? '+' : '') + nf2.format((a - b) * 100) + ' pp' : chgTxt(chg(a, b))}</td></tr>`).join('')}</tbody></table>
-    ${k.length === 2 || k === 'ALL' ? '<p class="hint">Atenție: bilanțurile pe 2025 folosesc CAEN Rev.3, iar cele pe 2024 CAEN Rev.2. Unele activități au fost mutate între clase și diviziuni, așa că variațiile pe diviziuni includ și efectul reclasificării.</p>' : ''}`
-    : `<p class="hint">Evoluția nu se afișează: denumirea clasei ${k} diferă între CAEN Rev.2 (bilanțurile ${D.prevAn}) și CAEN Rev.3 (bilanțurile ${D.an}), deci firmele comparate nu sunt aceleași.</p>`);
+    ${(k.length === 2 || k === 'ALL') && D.rev[0] !== D.rev[1] ? `<p class="hint">Atenție: bilanțurile pe ${D.an} folosesc ${revTxt(D.rev[0])}, iar cele pe ${D.prevAn} ${revTxt(D.rev[1])}. Unele activități au fost mutate între clase și diviziuni, așa că variațiile pe diviziuni includ și efectul reclasificării.</p>` : ''}`
+    : `<p class="hint">Evoluția nu se afișează: denumirea clasei ${k} diferă între ${revTxt(D.rev[1])} (bilanțurile ${D.prevAn}) și ${revTxt(D.rev[0])} (bilanțurile ${D.an}), deci firmele comparate nu sunt aceleași.</p>`);
   }
 
   h += `<h4>Distribuția indicatorilor în sector (firme active)</h4>
@@ -133,7 +139,9 @@ function compare(caen, r, N, an) {
   const CAs = sum(g, 'ca'), SALs = sum(g, 'sal');
   const share = CAs ? d.ca / CAs : null;
   let warn = '';
-  if (an && +an !== D.an) warn = `<div class="msg warn">Firma este analizată pe anul ${esc(an)}, iar datele de sector sunt pentru ${D.an}. ${+an <= 2024 && k.length === 4 && !sameMeaning(k) ? `Atenție: codul ${k} are alt conținut în CAEN Rev.3 (folosit în bilanțurile ${D.an}) decât în CAEN Rev.2.` : 'Comparația este orientativă.'}</div>`;
+  if (an && +an !== D.an) { const diffRev = revOf(an) !== D.rev[0]; const n = D.caen[k];
+    const changed = diffRev && k.length === 4 && !(n && n[0] && n[1] && strip(n[0]).replace(/[^a-z]/g, '') === strip(n[1]).replace(/[^a-z]/g, ''));
+    warn = `<div class="msg warn">Firma este analizată pe anul ${esc(an)}, iar datele de sector sunt pentru ${D.an}. ${changed ? `Atenție: codul ${k} are alt conținut în ${revTxt(D.rev[0])} (bilanțurile ${D.an}) decât în ${revTxt(revOf(an))}.` : 'Comparația este orientativă.'}</div>`; }
   const html = `<h3 class="sec">5. Poziția firmei în sector — ${esc(label(k))}</h3>${warn}
   <div class="score">
     <div class="box"><div class="hint">Cota de piață (din cifra de afaceri a sectorului)</div><div class="big">${share == null ? '—' : nf2.format(share * 100) + '%'}</div><span class="hint">CA sector ${D.an}: ${lei(CAs)}</span></div>

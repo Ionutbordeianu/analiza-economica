@@ -23,9 +23,15 @@ window.FIN_FIELDS = [
   { k: 'pib',  n: 'Pierdere brută' },
   { k: 'pn',   n: 'Profit net' },
   { k: 'pin',  n: 'Pierdere netă' },
-  { k: 'dob',  n: 'Cheltuieli cu dobânzile — opțional' },
-  { k: 'amo',  n: 'Amortizare — opțional' },
-  { k: 'sal',  n: 'Număr mediu de salariați' }
+  { k: 'sal',  n: 'Număr mediu de salariați' },
+  { grp: 'Detalii din contul de profit și pierdere (F20) — se completează manual' },
+  { k: 've',   n: 'Venituri din exploatare', m: 1 },
+  { k: 'che',  n: 'Cheltuieli din exploatare', m: 1 },
+  { k: 'chp',  n: '  din care: Cheltuieli cu personalul', m: 1 },
+  { k: 'amo',  n: '  din care: Amortizări și ajustări', m: 1 },
+  { k: 'vf',   n: 'Venituri financiare', m: 1 },
+  { k: 'chf',  n: 'Cheltuieli financiare', m: 1 },
+  { k: 'dob',  n: '  din care: Cheltuieli cu dobânzile', m: 1 }
 ];
 
 /* potrivire denumiri indicatori ANAF -> chei (text fără diacritice, litere mici) */
@@ -42,12 +48,7 @@ window.ANAF_MAP = [
 window.ANAF_CODES = { I1:'ai', I2:'ac', I3:'st', I4:'cr', I5:'cb', I6:'chav', I7:'dat', I8:'vav', I9:'prov',
   I10:'cp', I11:'cs', I13:'ca', I14:'vt', I15:'cht', I16:'pb', I17:'pib', I18:'pn', I19:'pin', I20:'sal' };
 
-window.FIN_DEMO = {
-  P: { ai: 820000, ac: 1150000, st: 380000, cr: 520000, cb: 210000, chav: 12000, dat: 980000, datc: 760000, vav: 0, prov: 0,
-       cp: 1002000, cs: 200, ca: 3100000, vt: 3150000, cht: 2900000, pb: 250000, pib: 0, pn: 215000, pin: 0, dob: 18000, amo: 95000, sal: 21 },
-  N: { ai: 870000, ac: 1260000, st: 470000, cr: 640000, cb: 120000, chav: 9000, dat: 1190000, datc: 960000, vav: 0, prov: 0,
-       cp: 949000, cs: 200, ca: 2850000, vt: 2880000, cht: 2840000, pb: 40000, pib: 0, pn: 27000, pin: 0, dob: 31000, amo: 102000, sal: 19 }
-};
+
 
 /* Parametri fiscali PFA (sistem real). smin = salariul minim brut în vigoare la 1 ianuarie. */
 window.PFA_PARAMS = {

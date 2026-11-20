@@ -177,6 +177,7 @@ function pfaCalc() {
   const an = $('#pfaAn').value, P = PFA_PARAMS[an];
   const s = +$('#pfaSmin').value || P.smin;
   const V = +$('#pfaVenit').value || 0, Ch = +$('#pfaChelt').value || 0, Ded = +$('#pfaDed').value || 0;
+  if ($('#pfaVenit').value === '') { $('#pfaOut').innerHTML = '<p class="hint">Introdu veniturile brute încasate în an pentru a vedea calculul.</p>'; return; }
   const opt = $('#pfaCasBaza').value, ex = $('#pfaExcept').checked;
   const net = Math.max(0, V - Ch);
   const s6 = 6 * s, s12 = 12 * s, s24 = 24 * s, sMax = P.cassMax * s;
@@ -226,7 +227,6 @@ function pfaCalc() {
 }
 $('#pfaAn').addEventListener('change', pfaYear);
 $$('#pfaForm input, #pfaForm select').forEach(el => el.addEventListener('input', pfaCalc));
-$('#pfaVenit').value = 60000;
 pfaYear();
 
 /* ---------------- CHECKLIST ---------------- */

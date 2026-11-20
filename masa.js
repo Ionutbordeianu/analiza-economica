@@ -67,7 +67,7 @@ function build() {
   if (!L) { out.innerHTML = '<div class="msg warn">Rulează mai întâi analiza în fila „Analiză financiară” (încarcă bilanțul de la ANAF sau completează datele), apoi revino aici.</div>'; return; }
   const { N, P, r, rp, checks, alerts, meta, sector, cf } = L;
   const g = C && C.date_generale && String(C.date_generale.cui) === String(meta.cui) ? C : null;
-  const den = meta.deni || (g && g.date_generale.denumire) || 'Entitatea analizată';
+  const den = meta.sim ? 'Simulare — entitate ipotetică' : (meta.deni || (g && g.date_generale.denumire) || 'Entitatea analizată');
   const strengths = [], weak = [];
   const rule = (cond, t, arr) => { if (cond) arr.push(t); };
   rule(r.RN > 0, `Rezultat net pozitiv (${lei(r.RN)}), marjă netă ${pct(r.mn)}.`, strengths);
@@ -92,7 +92,7 @@ function build() {
     : (badScores >= 1 || badAlerts >= 1 || weak.length > strengths.length) ? ['warn', 'Risc moderat — necesită monitorizare'] : ['ok', 'Risc redus'];
   const pl = (n, a, b) => n === 1 ? `1 ${a}` : `${n} ${b}`;
   const tr = (l, a, b, f) => `<tr><td>${l}</td>${P ? `<td class="num">${f(a)}</td>` : ''}<td class="num">${f(b)}</td></tr>`;
-  out.innerHTML = `<article class="raport">
+  out.innerHTML = `<article class="raport">${meta.sim ? '<div class="msg sim"><strong>SIMULARE</strong> — raport pe date introduse manual (ipotetice). Nu reprezintă situațiile financiare ale unei firme reale.</div>' : ''}
   <header><h2>Raport de analiză economico-financiară</h2>
   <p><strong>${esc(den)}</strong>${meta.cui ? ` · CUI ${esc(meta.cui)}` : ''}${meta.caen ? ` · CAEN ${esc(meta.caen)} ${esc(meta.den_caen || '')}` : ''}<br>
   Exercițiul analizat: ${esc(meta.an || 'N')}${P ? ` (comparativ cu ${esc(meta.an ? meta.an - 1 : 'N-1')})` : ''} · Data raportului: ${new Date().toLocaleDateString('ro-RO')}</p></header>
@@ -113,7 +113,7 @@ function build() {
     <div class="panel"><h4>Puncte slabe</h4><ul>${weak.map(s => `<li>${s}</li>`).join('') || '<li>—</li>'}</ul></div></div></section>
   ${scores.length ? `<section><h3>${g ? 5 : 4}. Scoruri de risc</h3><table class="sum">${scores.map(([n, v, f]) => `<tr><td>${n}</td><td class="num">${nf2.format(v)}</td><td>${f(v)}</td></tr>`).join('')}</table></section>` : ''}
   ${cf ? `<section><h3>Fluxuri de numerar estimate</h3><table class="sum"><tr><td>Exploatare</td><td class="num">${lei(cf.cfe)}</td></tr><tr><td>Investiții</td><td class="num">${lei(cf.cfi)}</td></tr><tr><td>Finanțare</td><td class="num">${lei(cf.cff)}</td></tr></table></section>` : ''}
-  ${sector ? `<section>${sector.html.replace('<h3 class="sec">5. ', '<h3>')}</section>` : ''}
+  ${sector ? `<section>${sector.html.replace('<h3 class="sec">5. ', '<h3>').replace(/<p class="hint">Indicatorii firmei[\s\S]*?<\/p>/, '')}</section>` : ''}
   <section><h3>Semnale pentru verificare</h3>${alerts.length ? `<ul>${alerts.map(a => `<li>${a[1]}</li>`).join('')}</ul>` : '<p>Nu au fost identificate.</p>'}</section>
   <section><h3>Calitatea datelor</h3><p>${badCk.length ? `${badCk.length} corelații contabile nu se verifică: ${badCk.map(c => esc(c.name)).join('; ')}.` : 'Corelațiile contabile disponibile se verifică.'} Sursa datelor: bilanțurile publicate de ANAF${checks.length > 3 ? ' și datele introduse din F10/F20' : ''}.</p></section>
   <footer class="disclaimer">Raport generat automat, cu scop informativ. Nu constituie opinie de audit, raport de expertiză contabilă sau consultanță fiscală. Indicatorii depind de calitatea datelor introduse; pentru decizii importante consultați un expert contabil sau un auditor financiar.</footer>

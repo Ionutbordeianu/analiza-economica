@@ -8,7 +8,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Verificare & Analiză Economică — firme și PFA</title>
 <meta name="description" content="Instrumente gratuite pentru verificarea firmelor și PFA din România: date ANAF după CUI, analiză financiară din bilanț, calculator taxe PFA, checklist de verificare.">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <header class="top">
@@ -21,6 +21,7 @@
       <a href="#acasa" data-tab="acasa">Acasă</a>
       <a href="#firma" data-tab="firma">Verificare CUI</a>
       <a href="#analiza" data-tab="analiza">Analiză financiară</a>
+      <a href="#sector" data-tab="sector">Sector</a>
       <a href="#fiscal" data-tab="fiscal">Fiscal</a>
       <a href="#pfa" data-tab="pfa">Calculator PFA</a>
       <a href="#masa" data-tab="masa">Verificare în masă</a>
@@ -43,7 +44,7 @@
   <div class="cards">
     <a class="card" href="#firma" data-tab="firma"><h3>Verificare după CUI</h3><p>Date ANAF: denumire, adresă, stare (activ / inactiv / radiat), TVA, TVA la încasare, RO e-Factura, cod CAEN.</p></a>
     <a class="card" href="#analiza" data-tab="analiza"><h3>Analiză financiară completă</h3><p>Bilanț F10 și cont de profit și pierdere F20, verificări de coerență, solduri intermediare de gestiune, CAF, bilanț funcțional (FR / NFR / TN), Du Pont, fluxuri de numerar, scoruri Altman, Conan-Holder și Taffler.</p></a>
-    <a class="card" href="#analiza" data-tab="analiza"><h3>Comparație cu sectorul CAEN</h3><p>Poziția firmei față de quartilele a ~700.000 de firme, din bilanțurile pe 2025 publicate pe data.gov.ro.</p></a>
+    <a class="card" href="#sector" data-tab="sector"><h3>Analiză de sector CAEN</h3><p>Pentru fiecare cod CAEN: bilanțul agregat (active, pasive, capitaluri), venituri și cheltuieli, rezultate, salariați, concentrarea pieței, clase de mărime, evoluția 2024–2025 și distribuția a 28 de indicatori — din bilanțurile tuturor firmelor.</p></a>
     <a class="card" href="#fiscal" data-tab="fiscal"><h3>Modul fiscal 2026</h3><p>PFA vs SRL micro vs impozit pe profit, impozit pe profit cu limite de deductibilitate, plafon TVA, calendar fiscal.</p></a>
     <a class="card" href="#masa" data-tab="masa"><h3>Verificare în masă</h3><p>O listă întreagă de furnizori sau clienți verificată la ANAF dintr-odată, cu export CSV.</p></a>
     <a class="card" href="#raport" data-tab="raport"><h3>Raport de analiză</h3><p>Raport tipăribil / PDF cu concluzii, puncte forte și slabe, scoruri de risc și comparație cu sectorul.</p></a>
@@ -60,7 +61,7 @@
   <h2>Verificare firmă / PFA după CUI</h2>
   <p class="lead">Interogare a serviciului web public ANAF (Registrul contribuabililor, TVA, e-Factura). Funcționează pentru SRL, SA, PFA, II, IF — orice entitate cu cod fiscal.</p>
   <form id="cuiForm" class="row">
-    <label>CUI / CIF <input id="cuiInput" inputmode="numeric" placeholder="ex. RO14399840" required></label>
+    <label>CUI / CIF <input id="cuiInput" inputmode="numeric" placeholder="cod fiscal" required></label>
     <label>La data <input id="cuiDate" type="date"></label>
     <button type="submit" class="btn">Verifică</button>
   </form>
@@ -77,7 +78,7 @@
   <details class="panel" open>
     <summary>Încarcă automat din bilanțul publicat la ANAF</summary>
     <div class="row">
-      <label>CUI <input id="bilCui" inputmode="numeric" placeholder="ex. 14399840"></label>
+      <label>CUI <input id="bilCui" inputmode="numeric" placeholder="cod fiscal"></label>
       <label>Anul N <input id="bilAn" type="number" min="2014" max="2030"></label>
       <button class="btn" id="bilLoad" type="button">Încarcă N și N-1</button>
     </div>
@@ -96,9 +97,14 @@
     </details>
   </details>
 
+  <div class="row">
+    <label class="check sim-label"><input type="checkbox" id="simMode"> <span><strong>Simulare — introduc manual date ipotetice</strong><br><small>Analiza și raportul vor fi marcate vizibil „SIMULARE”.</small></span></label>
+    <label>Cod CAEN pentru comparația cu sectorul <input id="finCaen" inputmode="numeric" size="6" list="caenList" placeholder="cod CAEN"></label>
+  </div>
   <div class="fin-grid">
     <div>
       <label class="check toggle"><input type="checkbox" id="fullToggle"> Arată toate rândurile din F10 și F20 (analiză completă, nivel expert)</label>
+      <p class="hint">ANAF publică doar rândurile marcate <span class="badge ok">ANAF</span>. Celelalte rânduri rămân goale după încărcare și se completează din situațiile financiare ale firmei (F10, F20).</p>
       <table class="fin" id="finTable">
         <thead><tr><th>Indicator (lei)</th><th>N-1</th><th>N</th></tr></thead>
         <tbody></tbody>
@@ -106,13 +112,26 @@
     </div>
     <div class="fin-actions">
       <button class="btn" id="finCalc" type="button">Calculează</button>
-      <button class="btn ghost" id="finDemo" type="button">Exemplu complet</button>
       <button class="btn ghost" id="finClear" type="button">Golește</button>
       <p class="hint">Rândurile marcate <span class="badge ok">ANAF</span> se completează automat. Restul (detaliile F10/F20) se iau din situațiile financiare depuse de firmă — sunt necesare pentru valoarea adăugată, EBE, CAF, bilanțul funcțional, Conan-Holder și verificările de coerență.</p>
       <p class="hint">PFA, II și IF nu depun bilanț; pentru ele folosește fila Calculator PFA și Declarația unică.</p>
     </div>
   </div>
   <div id="finOut"></div>
+</section>
+
+<!-- ================= SECTOR ================= -->
+<section id="sector" class="tab" hidden>
+  <h2>Analiză de sector CAEN</h2>
+  <p class="lead">Profilul complet al unui sector, calculat din bilanțurile pe 2025 și 2024 ale tuturor firmelor care au depus situații financiare (Ministerul Finanțelor, data.gov.ro). Bilanțurile pe 2025 folosesc clasificarea CAEN Rev.3.</p>
+  <div class="row">
+    <label>Cod CAEN (clasă, 4 cifre, sau diviziune, 2 cifre) <input id="secCode" list="caenList" inputmode="numeric" size="8" placeholder="cod CAEN"></label>
+    <button class="btn" id="secGo" type="button">Analizează sectorul</button>
+    <button class="btn ghost" id="secAll" type="button">Toate firmele din România</button>
+  </div>
+  <datalist id="caenList"></datalist>
+  <div id="secOut"></div>
+  <p class="disclaimer">Datele publice conțin cei 20 de indicatori sintetici din bilanț. Veniturile și cheltuielile din exploatare, cheltuielile cu personalul și salariul mediu nu sunt publicate pe firme, deci nu pot fi calculate pe sector din aceste date (salariul mediu pe activități îl publică INS).</p>
 </section>
 
 <!-- ================= FISCAL ================= -->
@@ -122,11 +141,11 @@
     <div class="panel">
       <h3>PFA, SRL micro sau SRL cu impozit pe profit?</h3>
       <form id="cmpForm">
-        <label>Venituri anuale (lei) <input id="cmpV" type="number" value="300000"></label>
-        <label>Cheltuieli deductibile anuale, inclusiv salarii (lei) <input id="cmpCh" type="number" value="80000"></label>
-        <label>Venituri realizate în anul precedent (lei) — pentru plafonul micro <input id="cmpPrev" type="number" placeholder="implicit: ca anul curent"></label>
-        <label>Curs EUR/RON (BNR, la închiderea anului precedent) <input id="cmpEur" type="number" step="0.0001" value="5.10"></label>
-        <label class="check"><input type="checkbox" id="cmpSal" checked> SRL-ul are cel puțin un salariat (condiție pentru regimul micro)</label>
+        <label>Venituri anuale (lei) <input id="cmpV" type="number"></label>
+        <label>Cheltuieli deductibile anuale, inclusiv salarii (lei) <input id="cmpCh" type="number"></label>
+        <label>Cifra de afaceri realizată în anul precedent (lei) — pentru plafonul micro de 100.000 EUR <input id="cmpPrev" type="number"></label>
+        <label>Curs EUR/RON la 31.12.2025 (BNR), folosit pentru plafonul micro 2026 <input id="cmpEur" type="number" step="0.0001" value="5.0985"></label>
+        <label class="check"><input type="checkbox" id="cmpSal" checked> SRL-ul are cel puțin un salariat cu contract de muncă cu normă întreagă (condiție pentru regimul micro)</label>
       </form>
     </div>
     <div class="panel"><div id="cmpOut"></div></div>
@@ -135,19 +154,19 @@
     <div class="panel">
       <h3>Impozit pe profit cu limite de deductibilitate</h3>
       <form id="ipForm" class="grid2">
-        <label>Venituri totale <input id="ipV" type="number" value="2000000"></label>
-        <label>Cifra de afaceri <input id="ipCA" type="number" value="1950000"></label>
-        <label>Cheltuieli totale (fără impozitul pe profit) <input id="ipCh" type="number" value="1700000"></label>
-        <label>Venituri neimpozabile <input id="ipVn" type="number" value="0"></label>
-        <label>Cheltuieli de protocol <input id="ipProt" type="number" value="15000"></label>
-        <label>Cheltuieli sociale <input id="ipSoc" type="number" value="30000"></label>
-        <label>Cheltuieli cu salariile <input id="ipSal" type="number" value="500000"></label>
-        <label>Cheltuieli auto cu uz mixt <input id="ipAuto" type="number" value="20000"></label>
-        <label>Amenzi, penalități <input id="ipAm" type="number" value="2000"></label>
-        <label>Alte cheltuieli nedeductibile <input id="ipAlt" type="number" value="0"></label>
-        <label>Sponsorizări <input id="ipSpons" type="number" value="10000"></label>
-        <label>Capital social <input id="ipCS" type="number" value="200"></label>
-        <label>Rezerva legală constituită anterior <input id="ipRL" type="number" value="0"></label>
+        <label>Venituri totale <input id="ipV" type="number"></label>
+        <label>Cifra de afaceri <input id="ipCA" type="number"></label>
+        <label>Cheltuieli totale (fără impozitul pe profit) <input id="ipCh" type="number"></label>
+        <label>Venituri neimpozabile <input id="ipVn" type="number"></label>
+        <label>Cheltuieli de protocol <input id="ipProt" type="number"></label>
+        <label>Cheltuieli sociale <input id="ipSoc" type="number"></label>
+        <label>Cheltuieli cu salariile <input id="ipSal" type="number"></label>
+        <label>Cheltuieli auto cu uz mixt <input id="ipAuto" type="number"></label>
+        <label>Amenzi, penalități <input id="ipAm" type="number"></label>
+        <label>Alte cheltuieli nedeductibile <input id="ipAlt" type="number"></label>
+        <label>Sponsorizări <input id="ipSpons" type="number"></label>
+        <label>Capital social <input id="ipCS" type="number"></label>
+        <label>Rezerva legală constituită anterior <input id="ipRL" type="number"></label>
       </form>
     </div>
     <div class="panel"><div id="ipOut"></div></div>
@@ -156,8 +175,8 @@
     <div class="panel">
       <h3>Plafonul de TVA</h3>
       <form id="tvaForm">
-        <label>Cifra de afaceri cumulată în anul curent (lei) <input id="tvaCA" type="number" value="370000"></label>
-        <label>Valoarea facturii următoare, fără TVA (lei) <input id="tvaFact" type="number" value="20000"></label>
+        <label>Cifra de afaceri cumulată în anul curent (lei) <input id="tvaCA" type="number"></label>
+        <label>Valoarea facturii următoare, fără TVA (lei) <input id="tvaFact" type="number"></label>
       </form>
       <div id="tvaOut"></div>
     </div>
@@ -172,7 +191,7 @@
 <section id="masa" class="tab" hidden>
   <h2>Verificare în masă la ANAF</h2>
   <p class="lead">Lipește o listă de coduri fiscale (furnizori, clienți), câte unul pe rând sau separate prin virgulă. Se verifică în tranșe de 10, cu o cerere pe secundă, conform regulilor ANAF.</p>
-  <textarea id="masaIn" rows="7" style="width:100%" placeholder="RO14399840&#10;10425242&#10;..."></textarea>
+  <textarea id="masaIn" rows="7" style="width:100%" placeholder="un cod fiscal pe rând"></textarea>
   <p class="row"><button class="btn" id="masaGo" type="button">Verifică lista</button></p>
   <div id="masaOut"></div>
 </section>
@@ -198,8 +217,8 @@
         <select id="pfaAn"><option value="2026" selected>2026</option><option value="2025">2025</option></select>
       </label>
       <label>Salariu minim brut de referință (lei/lună) <input id="pfaSmin" type="number" step="1"></label>
-      <label>Venituri brute încasate în an (lei) <input id="pfaVenit" type="number" step="0.01" value="72000"></label>
-      <label>Cheltuieli deductibile (lei) <input id="pfaChelt" type="number" step="0.01" value="0"></label>
+      <label>Venituri brute încasate în an (lei) <input id="pfaVenit" type="number" step="0.01"></label>
+      <label>Cheltuieli deductibile (lei) <input id="pfaChelt" type="number" step="0.01"></label>
       <label>Bază CAS aleasă
         <select id="pfaCasBaza">
           <option value="min" selected>Minimul legal (12 sau 24 salarii)</option>
@@ -208,7 +227,7 @@
         </select>
       </label>
       <label class="check"><input type="checkbox" id="pfaExcept"> Sunt exceptat de la baza minimă CASS de 6 salarii (salariat cu bază ≥ 6 salarii, pensionar, beneficiar de indemnizații etc.)</label>
-      <label>Alte deduceri din venitul impozabil (lei) <input id="pfaDed" type="number" step="0.01" value="0"></label>
+      <label>Alte deduceri din venitul impozabil (lei) <input id="pfaDed" type="number" step="0.01"></label>
       <p class="hint">Calculatorul aplică regulile generale. Situații speciale (norme de venit, pierderi fiscale reportate, venituri din mai multe surse, scutiri pentru persoane cu dizabilități) necesită verificare cu un specialist.</p>
     </form>
     <div id="pfaOut" class="panel"></div>
@@ -234,13 +253,13 @@
   <div class="cards two">
     <div class="panel">
       <h3>Cifra de control CUI / CIF</h3>
-      <input id="vCui" placeholder="ex. RO14399840">
+      <input id="vCui" placeholder="cod fiscal">
       <div id="vCuiOut" class="note"></div>
       <p class="hint">Algoritm: cheia 753217532 se înmulțește cu cifrele CUI (fără cifra de control), suma × 10 mod 11; rezultatul 10 devine 0.</p>
     </div>
     <div class="panel">
       <h3>IBAN</h3>
-      <input id="vIban" placeholder="ex. RO49 AAAA 1B31 0075 9384 0000">
+      <input id="vIban" placeholder="IBAN">
       <div id="vIbanOut" class="note"></div>
       <p class="hint">Verificare ISO 13616 (mod 97). Pentru IBAN-urile RO se afișează și banca după codul de 4 litere. IBAN-urile de Trezorerie încep cu RO..TREZ.</p>
     </div>
@@ -261,11 +280,11 @@
   </div>
 </footer>
 
-<script src="data.js?v=4"></script>
-<script src="app.js?v=4"></script>
-<script src="analiza.js?v=5"></script>
-<script src="sector.js?v=4"></script>
-<script src="fiscal.js?v=4"></script>
-<script src="masa.js?v=4"></script>
+<script src="data.js?v=7"></script>
+<script src="app.js?v=7"></script>
+<script src="analiza.js?v=8"></script>
+<script src="sector.js?v=8"></script>
+<script src="fiscal.js?v=7"></script>
+<script src="masa.js?v=8"></script>
 </body>
 </html>

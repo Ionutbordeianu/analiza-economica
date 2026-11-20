@@ -166,3 +166,11 @@ h3.sec{margin-top:28px;padding-bottom:6px;border-bottom:2px solid var(--accent);
   .ratios,.sum{page-break-inside:auto}
   tr{page-break-inside:avoid}
 }
+/* v8 — sector, simulare */
+.msg.sim{background:#fff0d6;color:#7a4b00;border:2px dashed #c98a00;font-size:1rem}
+.sim-label{border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:#fff;flex:1;min-width:280px}
+.sim-label small{color:var(--muted)}
+.ratios td.med{background:var(--accent2);font-weight:600}
+.up{color:var(--ok);font-weight:600}.down{color:var(--bad);font-weight:600}
+#sector h4,#finOut h4{margin:22px 0 6px;color:var(--accent)}
+.sec-head h3{margin:12px 0 2px;font-size:1.3rem}

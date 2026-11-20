@@ -82,10 +82,7 @@ const NAME_MAP = [
   [/^pierdere bruta/, 'pib'], [/^profit net/, 'pn'], [/^pierdere neta/, 'pin'], [/numar mediu.*salariati/, 'sal']
 ];
 
-const DEMO = {
-  P: {ain: 20000, aic: 780000, aif: 20000, st: 380000, cr: 520000, crc: 470000, its: 40000, cb: 210000, chav: 12000, datc: 760000, furn: 410000, crts: 120000, datl: 220000, crtl: 220000, prov: 0, vav: 0, cs: 200, prime: 0, rreev: 150000, rez: 40, rep: 0, pv: 1450000, vm: 1650000, sub: 0, vst: 15000, pim: 0, avex: 20000, cmat: 640000, cen: 64000, chm: 1210000, rcp: 12000, chp: 560000, amo: 95000, ajac: 0, cpe: 271000, cit: 26000, acex: 48000, aprov: 0, vf: 15000, chf: 38000, dob: 18000, sal: 21, div: 120000, che: 2902000, ca: 3100000, ve: 3135000, vt: 3150000, cht: 2940000, pb: 210000, pib: 0, imp: 33600, pn: 176400, pin: 0, rex: 176400, ai: 820000, ac: 1150000, dat: 980000, cp: 1002000, rrep: 675360},
-  N: {ain: 16000, aic: 834000, aif: 20000, st: 470000, cr: 640000, crc: 600000, its: 30000, cb: 120000, chav: 9000, datc: 960000, furn: 520000, crts: 230000, datl: 230000, crtl: 230000, prov: 0, vav: 0, cs: 200, prime: 0, rreev: 150000, rez: 40, rep: 0, pv: 1300000, vm: 1550000, sub: 0, vst: -12000, pim: 0, avex: 30000, cmat: 600000, cen: 71000, chm: 1160000, rcp: 15000, chp: 590000, amo: 102000, ajac: 6000, cpe: 230000, cit: 27000, acex: 43000, aprov: 0, vf: 12000, chf: 61000, dob: 31000, sal: 19, div: 80000, che: 2814000, ca: 2850000, ve: 2868000, vt: 2880000, cht: 2875000, pb: 5000, pib: 0, imp: 800, pn: 4200, pin: 0, rex: 4200, ai: 870000, ac: 1260000, dat: 1190000, cp: 949000, rrep: 794560}
-};
+
 
 /* ---------- tabel de introducere ---------- */
 const tb = $('#finTable tbody');
@@ -128,7 +125,7 @@ async function loadAnaf(cui, an) {
       const b = parseBilant(await U.anafBilant(c, yr));
       if (!b.count) { msg.push(`<div class="msg warn">${yr}: nu există bilanț publicat (PFA/II nu depun bilanț, sau anul nu e încă publicat).</div>`); continue; }
       setYear(y, b.o, false);
-      if (y === 'N') META = { cui: c, an: yr, deni: b.meta.deni, caen: b.meta.caen, den_caen: b.meta.den_caen };
+      if (y === 'N') { META = { cui: c, an: yr, deni: b.meta.deni, caen: b.meta.caen, den_caen: b.meta.den_caen }; $('#finCaen').value = b.meta.caen || ''; $('#simMode').checked = false; }
       msg.push(`<div class="msg ok">${yr}: ${esc(b.meta.deni || '')} — CAEN ${esc(b.meta.caen || '')} ${esc(b.meta.den_caen || '')}</div>`);
     } catch (e) { msg.push(`<div class="msg warn">${yr}: încărcarea nu a reușit (${esc(e.message)}). Folosește varianta manuală.</div>`); }
   }
@@ -148,17 +145,14 @@ $$('[data-paste]').forEach(b => b.addEventListener('click', () => {
     const p = parseBilant($('#bilPaste').value.trim());
     if (!p.count) throw new Error('nu am găsit indicatori');
     setYear(b.dataset.paste, p.o, false);
-    if (b.dataset.paste === 'N') META = { cui: p.meta.cui, an: p.meta.an, deni: p.meta.deni, caen: p.meta.caen, den_caen: p.meta.den_caen };
+    if (b.dataset.paste === 'N') { META = { cui: p.meta.cui, an: p.meta.an, deni: p.meta.deni, caen: p.meta.caen, den_caen: p.meta.den_caen }; $('#finCaen').value = p.meta.caen || ''; $('#simMode').checked = false; }
     $('#bilMsg').innerHTML = `<div class="msg ok">Încărcat ${esc(p.meta.an || '')} ${esc(p.meta.deni || '')}.</div>`;
     $('#bilPaste').value = '';
   } catch (e) { $('#bilMsg').innerHTML = `<div class="msg bad">Textul lipit nu este un răspuns ANAF valid (${esc(e.message)}).</div>`; }
 }));
-$('#finDemo').addEventListener('click', () => {
-  setYear('P', DEMO.P); setYear('N', DEMO.N);
-  META = { deni: 'Exemplu SRL', caen: '4690', den_caen: 'Comerț cu ridicata nespecializat', an: new Date().getFullYear() - 1 };
-  $('#fullToggle').checked = true; document.body.classList.remove('only-anaf'); calc();
-});
-$('#finClear').addEventListener('click', () => { setYear('P', {}); setYear('N', {}); $('#finOut').innerHTML = ''; META = {}; window.AE_LAST = null; });
+
+$('#finClear').addEventListener('click', () => { setYear('P', {}); setYear('N', {}); $('#finOut').innerHTML = ''; $('#finCaen').value = ''; META = {}; window.AE_LAST = null; });
+$('#simMode').addEventListener('change', e => { if (e.target.checked) { META = { sim: true }; $('#fullToggle').checked = true; document.body.classList.remove('only-anaf'); } });
 $('#finCalc').addEventListener('click', calc);
 
 /* ---------- calcule ---------- */
@@ -382,11 +376,14 @@ function cashflow(P, N, rp, r) {
 const badge = (v, ev) => { if (!ev || !has(v)) return ''; const [c, t] = ev(v); return t ? `<span class="badge ${c}">${t}</span>` : ''; };
 function calc() {
   const N = getYear('N'), P = getYear('P'), out = $('#finOut');
+  META.sim = $('#simMode').checked;
+  const cz = $('#finCaen').value.replace(/\D/g, ''); META.caen = cz || (META.sim ? '' : META.caen);
+  if (META.sim && !META.an) META.an = +$('#bilAn').value || null;
   if (!N) { out.innerHTML = '<div class="msg warn">Completează cel puțin coloana anului N.</div>'; return; }
   const r = compute(N), rp = P ? compute(P) : null;
   const ch = checks(N, r), chp = P ? checks(P, rp) : [];
-  const S = window.AE_SECTOR ? window.AE_SECTOR.compare(META.caen, r, N) : null;
-  let h = '';
+  const S = window.AE_SECTOR ? window.AE_SECTOR.compare(META.caen, r, N, META.an) : null;
+  let h = META.sim ? '<div class="msg sim"><strong>SIMULARE</strong> — analiză pe date introduse manual (ipotetice). Rezultatele nu reprezintă situațiile financiare ale unei firme reale.</div>' : '';
 
   // 1. verificări
   const bad = ch.filter(c => !c.ok).length;
@@ -443,7 +440,8 @@ function calc() {
 
   // 5. sector
   if (S) h += S.html;
-  else if (window.AE_SECTOR) h += `<p class="hint">Pentru comparația cu sectorul, încarcă datele de la ANAF (se preia codul CAEN) sau alege codul CAEN: <input id="caenSel" placeholder="ex. 4690" size="6"> <button class="btn sm ghost" type="button" id="caenGo">Compară</button></p>`;
+  else if (META.caen) h += `<div class="msg warn">Codul CAEN ${esc(META.caen)} nu are date de sector (sau datele de sector nu s-au încărcat încă).</div>`;
+  else h += '<p class="hint">Pentru comparația cu sectorul, completează codul CAEN (se preia automat la încărcarea de la ANAF).</p>';
 
   // 6. alerte
   const al = alerts(N, P, r, rp);
@@ -454,7 +452,6 @@ function calc() {
   <p class="disclaimer">Pragurile sunt orientative și diferă între sectoare. Scorurile de faliment au fost calibrate pe alte economii și perioade; folosiți-le ca semnal, nu ca verdict.</p>`;
   out.innerHTML = h;
   window.AE_LAST = { N, P, r, rp, checks: ch, alerts: al, meta: { ...META }, sector: S, cf };
-  const cg = $('#caenGo'); if (cg) cg.onclick = () => { META.caen = $('#caenSel').value.trim(); calc(); };
   out.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function dupontText(p, n) {
